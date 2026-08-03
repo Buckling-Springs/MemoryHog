@@ -112,19 +112,6 @@
   <h1>🐷 MemoryHog</h1>
   <p class="subtitle">Memory Leak &amp; Bloat Simulator — for browser / DevTools troubleshooting</p>
 
-  <div class="info-box">
-    <strong>⚠️ What this page does</strong>
-    This tool intentionally <em>grows browser memory</em> to help you test and debug memory-related issues.
-    Use it to:
-    <ul>
-      <li><strong>Array allocation</strong> – fills JavaScript heap with typed-array chunks so you can observe heap growth in DevTools (Memory tab / Task Manager).</li>
-      <li><strong>Detached DOM nodes</strong> – creates DOM elements that are retained in JS but never attached to the document, simulating a classic memory-leak pattern.</li>
-      <li><strong>Clear</strong> – releases all references so the garbage collector can reclaim memory.</li>
-    </ul>
-    Open your browser's DevTools → <em>Memory</em> tab (or <em>Performance monitor</em>) to observe the effects.
-    <br><strong>Do not use this on a machine where you need stable memory.</strong>
-  </div>
-
   <!-- User-configurable parameters -->
   <div class="controls">
     <div class="control-group">
@@ -147,6 +134,19 @@
     <button id="addArrayBtn">Allocate Array Chunk</button>
     <button id="addDOMBtn">Append Detached DOM Nodes</button>
     <button id="clearBtn">Clear Memory</button>
+  </div>
+
+  <div class="info-box">
+    <strong>⚠️ What this page does</strong>
+    This tool intentionally <em>grows browser memory</em> to help you test and debug memory-related issues.
+    Use it to:
+    <ul>
+      <li><strong>Array allocation</strong> – fills JavaScript heap with typed-array chunks so you can observe heap growth in DevTools (Memory tab / Task Manager).</li>
+      <li><strong>Detached DOM nodes</strong> – creates DOM elements that are retained in JS but never attached to the document, simulating a classic memory-leak pattern.</li>
+      <li><strong>Clear</strong> – releases all references so the garbage collector can reclaim memory.</li>
+    </ul>
+    Open your browser's DevTools → <em>Memory</em> tab (or <em>Performance monitor</em>) to observe the effects.
+    <br><strong>Do not use this on a machine where you need stable memory.</strong>
   </div>
 
   <div id="stats">
