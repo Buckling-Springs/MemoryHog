@@ -136,6 +136,12 @@
     <button id="clearBtn">Clear Memory</button>
   </div>
 
+  <div id="stats">
+    <div><span class="stat-label">Array chunks allocated:  </span><span id="statChunks">0</span></div>
+    <div><span class="stat-label">Total array heap:        </span><span id="statHeap">0 MB</span></div>
+    <div><span class="stat-label">Detached DOM nodes:      </span><span id="statDOM">0</span></div>
+  </div>
+
   <div class="info-box">
     <strong>⚠️ What this page does</strong>
     This tool intentionally <em>grows browser memory</em> to help you test and debug memory-related issues.
@@ -147,12 +153,6 @@
     </ul>
     Open your browser's DevTools → <em>Memory</em> tab (or <em>Performance monitor</em>) to observe the effects.
     <br><strong>Do not use this on a machine where you need stable memory.</strong>
-  </div>
-
-  <div id="stats">
-    <div><span class="stat-label">Array chunks allocated:  </span><span id="statChunks">0</span></div>
-    <div><span class="stat-label">Total array heap:        </span><span id="statHeap">0 MB</span></div>
-    <div><span class="stat-label">Detached DOM nodes:      </span><span id="statDOM">0</span></div>
   </div>
 
   <p class="warning">
