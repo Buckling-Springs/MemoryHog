@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MemoryHog – Memory Leak &amp; Bloat Simulator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      max-width: 800px;
+      margin: 0 auto;
+      background: #f8f9fa;
+      color: #212529;
+    }
+    h1 { margin-bottom: 0.25rem; }
+    .subtitle { color: #6c757d; margin-bottom: 1.5rem; font-size: 0.95rem; }
+
+    .info-box {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .info-box strong { display: block; margin-bottom: 0.4rem; font-size: 1rem; }
+    .info-box ul { margin: 0.5rem 0 0; padding-left: 1.25rem; }
+    .info-box li { margin-bottom: 0.3rem; }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    @media (max-width: 520px) {
+      .controls { grid-template-columns: 1fr; }
+    }
+    .control-group {
+      background: #fff;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      padding: 0.9rem 1rem;
+    }
+    .control-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      color: #495057;
+    }
+    .control-group .input-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .control-group input[type="number"] {
+      width: 100%;
+      padding: 0.35rem 0.5rem;
+      font-size: 1rem;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+    }
+    .control-group .unit {
+      font-size: 0.85rem;
+      color: #6c757d;
+      white-space: nowrap;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-bottom: 1.5rem;
+    }
+    button {
+      padding: 0.55rem 1.1rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    button:hover { opacity: 0.85; }
+    #addArrayBtn  { background: #0d6efd; color: #fff; }
+    #addDOMBtn    { background: #6f42c1; color: #fff; }
+    #clearBtn     { background: #dc3545; color: #fff; }
+
+    #stats {
+      background: #fff;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+      font-family: monospace;
+      font-size: 0.95rem;
+      line-height: 1.8;
+    }
+    #stats .stat-label { color: #6c757d; }
+
+    .warning {
+      margin-top: 1.25rem;
+      font-size: 0.82rem;
+      color: #dc3545;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐷 MemoryHog</h1>
+  <p class="subtitle">Memory Leak &amp; Bloat Simulator — for browser / DevTools troubleshooting</p>
+
+  <div class="info-box">
+    <strong>⚠️ What this page does</strong>
+    This tool intentionally <em>grows browser memory</em> to help you test and debug memory-related issues.
+    Use it to:
+    <ul>
+      <li><strong>Array allocation</strong> – fills JavaScript heap with typed-array chunks so you can observe heap growth in DevTools (Memory tab / Task Manager).</li>
+      <li><strong>Detached DOM nodes</strong> – creates DOM elements that are retained in JS but never attached to the document, simulating a classic memory-leak pattern.</li>
+      <li><strong>Clear</strong> – releases all references so the garbage collector can reclaim memory.</li>
+    </ul>
+    Open your browser's DevTools → <em>Memory</em> tab (or <em>Performance monitor</em>) to observe the effects.
+    <br><strong>Do not use this on a machine where you need stable memory.</strong>
+  </div>
+
+  <!-- User-configurable parameters -->
+  <div class="controls">
+    <div class="control-group">
+      <label for="allocSize">Allocation size per click</label>
+      <div class="input-row">
+        <input type="number" id="allocSize" value="100" min="1" max="2048" step="1">
+        <span class="unit">MB</span>
+      </div>
+    </div>
+    <div class="control-group">
+      <label for="domCount">DOM nodes per click</label>
+      <div class="input-row">
+        <input type="number" id="domCount" value="10000" min="1" max="1000000" step="1000">
+        <span class="unit">nodes</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button id="addArrayBtn">Allocate Array Chunk</button>
+    <button id="addDOMBtn">Append Detached DOM Nodes</button>
+    <button id="clearBtn">Clear Memory</button>
+  </div>
+
+  <div id="stats">
+    <div><span class="stat-label">Array chunks allocated:  </span><span id="statChunks">0</span></div>
+    <div><span class="stat-label">Total array heap:        </span><span id="statHeap">0 MB</span></div>
+    <div><span class="stat-label">Detached DOM nodes:      </span><span id="statDOM">0</span></div>
+  </div>
+
+  <p class="warning">
+    ⚠️ Allocating large amounts of memory may slow down or crash your browser tab. Start small.
+  </p>
+
+  <script>
+    "use strict";
+
+    // Retained references — GC cannot reclaim these until cleared
+    let memoryStore   = [];  // Array of Uint8Array chunks
+    let detachedNodes = [];  // Array of detached DOM elements
+
+    function getAllocMB() {
+      const v = parseInt(document.getElementById("allocSize").value, 10);
+      return (Number.isFinite(v) && v > 0) ? v : 100;
+    }
+
+    function getDOMCount() {
+      const v = parseInt(document.getElementById("domCount").value, 10);
+      return (Number.isFinite(v) && v > 0) ? v : 10000;
+    }
+
+    // Allocate a typed-array chunk and retain a reference so the GC cannot free it
+    document.getElementById("addArrayBtn").addEventListener("click", () => {
+      const mb    = getAllocMB();
+      const chunk = new Uint8Array(mb * 1024 * 1024);
+      chunk.fill(42); // write to every byte so the OS actually commits the pages
+      memoryStore.push(chunk);
+      updateStats();
+    });
+
+    // Create detached DOM nodes — retained in JS memory, never added to the document
+    document.getElementById("addDOMBtn").addEventListener("click", () => {
+      const count = getDOMCount();
+      for (let i = 0; i < count; i++) {
+        const div     = document.createElement("div");
+        div.textContent = `Leaked element ${detachedNodes.length + i}`;
+        detachedNodes.push(div);
+      }
+      updateStats();
+    });
+
+    // Drop all references so the garbage collector can reclaim the memory
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      memoryStore   = [];
+      detachedNodes = [];
+      updateStats();
+    });
+
+    function updateStats() {
+      const totalMB = memoryStore.reduce((sum, c) => sum + c.byteLength / (1024 * 1024), 0);
+      document.getElementById("statChunks").textContent = memoryStore.length;
+      document.getElementById("statHeap").textContent   = totalMB.toFixed(0) + " MB";
+      document.getElementById("statDOM").textContent    = detachedNodes.length.toLocaleString();
+    }
+  </script>
+</body>
+</html>
