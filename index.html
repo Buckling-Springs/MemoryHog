@@ -17,29 +17,34 @@
       overflow-wrap: break-word;
     }
     @media (max-width: 480px) {
-      body { padding: 1rem; }
+      body { padding: 1.25rem 1rem; }
     }
-    h1 { margin-bottom: 0.25rem; font-size: clamp(1.4rem, 6vw, 2rem); }
-    .subtitle { color: #6c757d; margin-bottom: 1.5rem; font-size: 0.95rem; }
+
+    .page { display: flex; flex-direction: column; gap: 1.75rem; }
+
+    header { margin-bottom: -0.5rem; }
+    h1 { margin: 0 0 0.35rem; font-size: clamp(1.4rem, 6vw, 2rem); }
+    .subtitle { color: #6c757d; margin: 0; font-size: 0.95rem; }
 
     .info-box {
       background: #fff3cd;
       border: 1px solid #ffc107;
-      border-radius: 6px;
-      padding: 1rem 1.25rem;
-      margin-bottom: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      padding: 1.25rem 1.5rem;
       font-size: 0.9rem;
-      line-height: 1.5;
+      line-height: 1.55;
     }
-    .info-box strong { display: block; margin-bottom: 0.4rem; font-size: 1rem; }
-    .info-box ul { margin: 0.5rem 0 0; padding-left: 1.25rem; }
-    .info-box li { margin-bottom: 0.3rem; }
+    .info-box strong { display: block; margin-bottom: 0.5rem; font-size: 1rem; }
+    .info-box ul { margin: 0.75rem 0; padding-left: 1.25rem; }
+    .info-box li { margin-bottom: 0.6rem; }
+    .info-box li:last-child { margin-bottom: 0; }
+    .info-box p { margin: 0.75rem 0 0; }
 
     .controls {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1rem;
-      margin-bottom: 1.5rem;
     }
     @media (max-width: 520px) {
       .controls { grid-template-columns: 1fr; }
@@ -47,14 +52,15 @@
     .control-group {
       background: #fff;
       border: 1px solid #dee2e6;
-      border-radius: 6px;
-      padding: 0.9rem 1rem;
+      border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      padding: 1rem 1.1rem;
     }
     .control-group label {
       display: block;
       font-size: 0.85rem;
       font-weight: 600;
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.5rem;
       color: #495057;
     }
     .control-group .input-row {
@@ -65,7 +71,7 @@
     .control-group input[type="number"] {
       width: 100%;
       min-width: 0;
-      padding: 0.35rem 0.5rem;
+      padding: 0.45rem 0.6rem;
       font-size: 1rem;
       border: 1px solid #ced4da;
       border-radius: 4px;
@@ -80,20 +86,22 @@
       display: flex;
       flex-wrap: wrap;
       gap: 0.6rem;
-      margin-bottom: 1.5rem;
     }
     button {
       flex: 1 1 auto;
       min-width: 0;
-      padding: 0.55rem 1.1rem;
+      padding: 0.7rem 1.1rem;
       font-size: 1rem;
+      font-weight: 600;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
-      transition: opacity 0.15s;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+      transition: opacity 0.15s, transform 0.15s;
       white-space: normal;
     }
     button:hover { opacity: 0.85; }
+    button:active { transform: translateY(1px); }
     #addArrayBtn  { background: #0d6efd; color: #fff; }
     #addDOMBtn    { background: #6f42c1; color: #fff; }
     #clearBtn     { background: #dc3545; color: #fff; }
@@ -101,72 +109,89 @@
     #stats {
       background: #fff;
       border: 1px solid #dee2e6;
-      border-radius: 6px;
-      padding: 1rem 1.25rem;
+      border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      padding: 1.1rem 1.25rem;
       font-family: monospace;
       font-size: 0.95rem;
-      line-height: 1.8;
     }
+    #stats .stat-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.25rem 0;
+    }
+    #stats .stat-row + .stat-row { border-top: 1px solid #f1f3f5; }
     #stats .stat-label { color: #6c757d; }
 
     .warning {
-      margin-top: 1.25rem;
-      font-size: 0.82rem;
-      color: #dc3545;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: #842029;
+      background: #f8d7da;
+      border: 1px solid #f1aeb5;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
     }
   </style>
 </head>
 <body>
 
-  <h1>🐷 MemoryHog</h1>
-  <p class="subtitle">Memory Leak &amp; Bloat Simulator — for browser / DevTools troubleshooting</p>
+  <div class="page">
+    <header>
+      <h1>🐷 MemoryHog</h1>
+      <p class="subtitle">Memory Leak &amp; Bloat Simulator — for browser / DevTools troubleshooting</p>
+    </header>
 
-  <!-- User-configurable parameters -->
-  <div class="controls">
-    <div class="control-group">
-      <label for="allocSize">Allocation size per click</label>
-      <div class="input-row">
-        <input type="number" id="allocSize" value="100" min="1" max="2048" step="1">
-        <span class="unit">MB</span>
+    <!-- User-configurable parameters -->
+    <div class="controls">
+      <div class="control-group">
+        <label for="allocSize">Allocation size per click</label>
+        <div class="input-row">
+          <input type="number" id="allocSize" value="100" min="1" max="2048" step="1">
+          <span class="unit">MB</span>
+        </div>
+      </div>
+      <div class="control-group">
+        <label for="domCount">DOM nodes per click</label>
+        <div class="input-row">
+          <input type="number" id="domCount" value="10000" min="1" max="1000000" step="1000">
+          <span class="unit">nodes</span>
+        </div>
       </div>
     </div>
-    <div class="control-group">
-      <label for="domCount">DOM nodes per click</label>
-      <div class="input-row">
-        <input type="number" id="domCount" value="10000" min="1" max="1000000" step="1000">
-        <span class="unit">nodes</span>
-      </div>
+
+    <div class="actions">
+      <button id="addArrayBtn">Allocate Array Chunk</button>
+      <button id="addDOMBtn">Append Detached DOM Nodes</button>
+      <button id="clearBtn">Clear Memory</button>
     </div>
-  </div>
 
-  <div class="actions">
-    <button id="addArrayBtn">Allocate Array Chunk</button>
-    <button id="addDOMBtn">Append Detached DOM Nodes</button>
-    <button id="clearBtn">Clear Memory</button>
-  </div>
+    <div id="stats">
+      <div class="stat-row"><span class="stat-label">Array chunks allocated</span><span id="statChunks">0</span></div>
+      <div class="stat-row"><span class="stat-label">Total array heap</span><span id="statHeap">0 MB</span></div>
+      <div class="stat-row"><span class="stat-label">Detached DOM nodes</span><span id="statDOM">0</span></div>
+    </div>
 
-  <div id="stats">
-    <div><span class="stat-label">Array chunks allocated:  </span><span id="statChunks">0</span></div>
-    <div><span class="stat-label">Total array heap:        </span><span id="statHeap">0 MB</span></div>
-    <div><span class="stat-label">Detached DOM nodes:      </span><span id="statDOM">0</span></div>
-  </div>
+    <div class="info-box">
+      <strong>⚠️ What this page does</strong>
+      This tool intentionally <em>grows browser memory</em> to help you test and debug memory-related issues.
+      Use it to:
+      <ul>
+        <li><strong>Array allocation</strong> – fills JavaScript heap with typed-array chunks so you can observe heap growth in DevTools (Memory tab / Task Manager).</li>
+        <li><strong>Detached DOM nodes</strong> – creates DOM elements that are retained in JS but never attached to the document, simulating a classic memory-leak pattern.</li>
+        <li><strong>Clear</strong> – releases all references so the garbage collector can reclaim memory.</li>
+      </ul>
+      <p>Open your browser's DevTools → <em>Memory</em> tab (or <em>Performance monitor</em>) to observe the effects.</p>
+      <p><strong>Do not use this on a machine where you need stable memory.</strong></p>
+    </div>
 
-  <div class="info-box">
-    <strong>⚠️ What this page does</strong>
-    This tool intentionally <em>grows browser memory</em> to help you test and debug memory-related issues.
-    Use it to:
-    <ul>
-      <li><strong>Array allocation</strong> – fills JavaScript heap with typed-array chunks so you can observe heap growth in DevTools (Memory tab / Task Manager).</li>
-      <li><strong>Detached DOM nodes</strong> – creates DOM elements that are retained in JS but never attached to the document, simulating a classic memory-leak pattern.</li>
-      <li><strong>Clear</strong> – releases all references so the garbage collector can reclaim memory.</li>
-    </ul>
-    Open your browser's DevTools → <em>Memory</em> tab (or <em>Performance monitor</em>) to observe the effects.
-    <br><strong>Do not use this on a machine where you need stable memory.</strong>
+    <p class="warning">
+      ⚠️ Allocating large amounts of memory may slow down or crash your browser tab. Start small.
+    </p>
   </div>
-
-  <p class="warning">
-    ⚠️ Allocating large amounts of memory may slow down or crash your browser tab. Start small.
-  </p>
 
   <script>
     "use strict";
