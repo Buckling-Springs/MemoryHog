@@ -6,6 +6,7 @@
   <title>MemoryHog – Memory Leak &amp; Bloat Simulator</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; }
+    html { overflow-x: hidden; }
     body {
       font-family: sans-serif;
       padding: 2rem;
@@ -13,8 +14,12 @@
       margin: 0 auto;
       background: #f8f9fa;
       color: #212529;
+      overflow-wrap: break-word;
     }
-    h1 { margin-bottom: 0.25rem; }
+    @media (max-width: 480px) {
+      body { padding: 1rem; }
+    }
+    h1 { margin-bottom: 0.25rem; font-size: clamp(1.4rem, 6vw, 2rem); }
     .subtitle { color: #6c757d; margin-bottom: 1.5rem; font-size: 0.95rem; }
 
     .info-box {
@@ -59,6 +64,7 @@
     }
     .control-group input[type="number"] {
       width: 100%;
+      min-width: 0;
       padding: 0.35rem 0.5rem;
       font-size: 1rem;
       border: 1px solid #ced4da;
@@ -77,12 +83,15 @@
       margin-bottom: 1.5rem;
     }
     button {
+      flex: 1 1 auto;
+      min-width: 0;
       padding: 0.55rem 1.1rem;
       font-size: 1rem;
       border: none;
       border-radius: 5px;
       cursor: pointer;
       transition: opacity 0.15s;
+      white-space: normal;
     }
     button:hover { opacity: 0.85; }
     #addArrayBtn  { background: #0d6efd; color: #fff; }
